@@ -1,8 +1,13 @@
 const SHA256 = require('crypto-js/sha256');
 
 
-class Block{
-    constructor(index, previousHash,  data){
+
+// 引用
+// address: string
+
+class BlockHeader{
+
+    constructor(index: number, previousHash: string,  data){
         this.index  = index;
         this.timestamp = generateTimeStamp();
         this.previousHash = previousHash;
@@ -42,15 +47,32 @@ class Block{
     dynamicDifficulty(){
 
     }
-    
+}
 
 
- 
-    
+class Block{
+    constructor(header, data){
+        this.header= header
+        this.data = data;
+    }
 
+    generateCoinBaseTransaction(){
+
+    }
 
 
 }
+
+class Data{
+    constructor(coinBaseTransaction: CoinBaseTransaction, transactions: [] Transaction){
+        this.coinBaseTransaction = coinBaseTransaction
+        this.transactions=transactions
+    }
+
+}
+
+
+
 
 class BlockChain{
     constructor(){
