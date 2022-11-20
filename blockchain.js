@@ -1,13 +1,8 @@
 const SHA256 = require('crypto-js/sha256');
 
-
-
-// 引用
-// address: string
-
 class BlockHeader{
 
-    constructor(index: number, previousHash: string,  data){
+    constructor(index, previousHash){
         this.index  = index;
         this.timestamp = generateTimeStamp();
         this.previousHash = previousHash;
@@ -15,7 +10,6 @@ class BlockHeader{
         this.difficulty = this.dynamicDifficulty();
         this.nonce = this.generateNounce();
         this.merkleRoot = this.generateMerkleRoot();
-        this.data = data;
     }
 
     generateTimeStamp(){
@@ -56,15 +50,10 @@ class Block{
         this.data = data;
     }
 
-    generateCoinBaseTransaction(){
-
-    }
-
-
 }
 
 class Data{
-    constructor(coinBaseTransaction: CoinBaseTransaction, transactions: [] Transaction){
+    constructor(coinBaseTransaction, transactions){
         this.coinBaseTransaction = coinBaseTransaction
         this.transactions=transactions
     }
@@ -81,8 +70,9 @@ class BlockChain{
     }
 
     generateGenesisBlock(){
-        let Block = new Block(0,"0","no data");
-        return Block;
+        let blockHeader = new blockHeader(0,"0");
+        let block = new Block(blockHeader,"no data");
+        return block;
     }
 
     getLastBlock(){
@@ -90,7 +80,16 @@ class BlockChain{
     }
 
     generateNewBlock(data){
-        let newBlock = new Block(++index,getLastBlock().currentHash,data);
+        let newBlockHeader = new blockHeader(++index,getLastBlock().currentHash);
+        let newBlock = new Block(newBlockHeader,data);
         this.chain.push(newBlock);
     }
+
+    ifVailedBlock(Block){
+        return (Block.previousHash === getLastBlock().previousHash) && (Block.index === this.latestIndex) && (Block.calculateHash === Block.currentHash);
+    }
+
+
+        
+        
 }
