@@ -1,5 +1,7 @@
 const bodyParser = require('body-parser');
 const express = require ('express');
+var cors = require("cors");
+// const greetingFromReact=require('./reactrender.cjs')
 
 //import {Block, generateNextBlock, getBlockchain} from './blockchain';
 //import {getBlockchain} from './blockchain.cjs';
@@ -10,9 +12,9 @@ const express = require ('express');
 // const p2pPort: number = parseInt(process.env.P2P_PORT) || 6001;
 
 
-
-const blockchain = require("./blockchain.cjs");
-const p2p = require("./p2p.cjs");
+// TODO!!!
+// const blockchain = require("./blockchain.cjs");
+// const p2p = require("./p2p.cjs");
 const httpPort = parseInt(process.env.HTTP_PORT) || 3001;
 const p2pPort = parseInt(process.env.P2P_PORT) || 6001;
 
@@ -21,10 +23,13 @@ const p2pPort = parseInt(process.env.P2P_PORT) || 6001;
 
 const initHttpServer =  (myHttpPort) => {
     const app = express();
+    app.use(cors());
     app.use(bodyParser.json());
 
     app.get('/blocks', (req, res) => {
-        res.send(blockchain.getBlockchain());
+        // res.send(blockchain.getBlockchain());
+        res.send(`<div>I'm content of web page from server</div>`);
+        // res.send(greetingFromReact);
     });
 
 //    app.post('/mineBlock', (req, res) => {
@@ -39,10 +44,10 @@ const initHttpServer =  (myHttpPort) => {
 //        res.send();
 //    });
 //
-//    app.listen(myHttpPort, () => {
-//        console.log('Listening http on port: ' + myHttpPort);
-//    });
+    app.listen(myHttpPort, () => {
+        console.log('Listening http on port: ' + myHttpPort);
+    });
 };
 
 initHttpServer(httpPort);
-initP2PServer(p2pPort);
+// initP2PServer(p2pPort);

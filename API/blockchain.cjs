@@ -73,7 +73,7 @@ class cOut{
     }
 }
 
-class Transcation{
+class Transaction{
     constructor(cIn,cOut,amount){
         this.cIn = In;
         this.cOut = Out;
@@ -163,19 +163,23 @@ class BlockChain{
         this.chain.push(newBlock);
     }
 
-    ifVailedBlock(Block){
+
+    // Validating the integrity of new blocks (index, previousHash, hash from values & datatypes)
+    ifValidBlock(Block){
         return (Block.previousHash === getLastBlock().previousHash) && (Block.index === this.latestIndex) && (Block.calculateHash === Block.currentHash);
     }
+
+    // Validating the integrity of whole blockchain
+
 }
 
 // TO 瑞杰：可以看看这个就是whole blockchain
 const blockchain = new BlockChain();
 
 
-// Validating the integrity of new blocks (index, previousHash, hash from values & datatypes)
 // TODO
 
-// Validating the integrity of whole blockchain
+
 // TODO
 
 const getBlockchain = () => blockchain;
