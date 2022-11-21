@@ -12,10 +12,8 @@ class BlockHeader{
         this.index  = index;
         this.timestamp = generateTimeStamp();
         this.previousHash = previousHash;
-        this.currentHash = this.calculateHash();
-        this.difficulty = this.dynamicDifficulty();
         this.nonce = this.generateNonce();
-        this.merkleRoot = this.generateMerkleRoot();
+        this.currentHash = this.calculateHash();
     }
 
     generateTimeStamp(){
@@ -31,31 +29,80 @@ class BlockHeader{
         return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString;
     }
 
-    generateMerkleRoot(){
-
-    }
 
     generateNonce(){
         max = 10000000;
         return Math.floor(Math.random()*(max+1));
     }
 
-    // 2
-    powAlgorithm(){
+}
 
-    }
-    dynamicDifficulty(){
-
+// 2
+class toolForDifficulty{
+    getDifficulty(aBlockchain){
+        const latestBlock = aBlockchain[blockchain.length - 1];
+        if (latestBlock.index % DIFFICULTY_ADJUSTMENT_INTERVAL === 0 && latestBlock.index !== 0) {
+            return getAdjustedDifficulty(latestBlock, aBlockchain);
+        } else {
+            return latestBlock.difficulty;
+        }
+    };
+    
+    getAdjustedDifficulty = (latestBlock, aBlockchain) => {
+        const prevAdjustmentBlock = aBlockchain[blockchain.length - DIFFICULTY_ADJUSTMENT_INTERVAL];
+        const timeExpected = BLOCK_GENERATION_INTERVAL * DIFFICULTY_ADJUSTMENT_INTERVAL;
+        const timeTaken = latestBlock.timestamp - prevAdjustmentBlock.timestamp;
+        if (timeTaken < timeExpected / 2) {
+            return prevAdjustmentBlock.difficulty + 1;
+        } else if (timeTaken > timeExpected * 2) {
+            return prevAdjustmentBlock.difficulty - 1;
+        } else {
+            return prevAdjustmentBlock.difficulty;
+        }
+    };
+}
+class cIn{
+    constructor(sender){
+        this.sender = sender;
     }
 }
 
+class cOut{
+    constructor(receiver, amount){
+        this.receiver = receiver;
+    }
+}
+
+class Transcation{
+    constructor(cIn,cOut,amount){
+        this.cIn = In;
+        this.cOut = Out;
+        this.amount = amount;
+        this.hash = this.calculateHash();
+    }
+
+    calculateHash(){
+        return SHA256(this.in + this.out ).toString;
+    }
+}
+
+class CoinBaseTransaction{
+    constructor(cOut,amount){
+        this.cOut = cOut;
+        this.amount = amount;
+        this.hash = this.calculateHash();
+    }
+}
 
 class blockData{
 
     //coinBaseTransaction: CoinBaseTransaction, transactions: [] Transaction
-    constructor(coinBaseTransaction, transactions){
-        this.coinBaseTransaction = coinBaseTransaction
-        this.transactions=transactions
+    constructor(coinBaseTransaction){
+        this.data = [coinBaseTransaction];
+    }
+
+    addTransaction(transaction){
+        this.data.push(transaction);
     }
 
 }
@@ -66,6 +113,18 @@ class Block{
     constructor(header, data){
         this.header= header
         this.data = data;
+        this.merkleRoot = this.generateMerkleRoot();
+        this.difficulty = toolForDifficulty.getAdjustedDifficulty(data);
+    }
+
+    generateMerkleRoot(){
+        //还会改一下
+        if ((this.data.length) % 2 == 0){
+            return sha256(sha256(sha256(sha256(H1+H2))+sha256(sha256(H3+H4))));
+        }
+        else{
+            return sha256(sha256(sha256(sha256(H1+H2))+sha256(sha256(H3+H3))));
+        }
     }
 
 }
@@ -102,6 +161,10 @@ class BlockChain{
     generateNewBlock(data){
         let newBlock = new Block(++index,getLastBlock().currentHash,data);
         this.chain.push(newBlock);
+    }
+
+    ifVailedBlock(Block){
+        return (Block.previousHash === getLastBlock().previousHash) && (Block.index === this.latestIndex) && (Block.calculateHash === Block.currentHash);
     }
 }
 
