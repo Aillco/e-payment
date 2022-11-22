@@ -4,7 +4,7 @@ class CoinBaseTransaction{
     constructor(to, amount){
         this.to=to;
         this.amount=amount;
-        this.generateTXID= generateTxID();
+        this.generateTXID=generateTxID();
     }
 
     generateTxID(){
