@@ -1,100 +1,101 @@
 const SHA256 = require('crypto-js/sha256');
+const { MerkleTree } = require('merkletreejs')
 //const transactions= require('./transactions')
 
 // 引用
 // address: string
 
+// block class
+
+
 class BlockHeader{
 
     // index: number
     // previousHash: string
-    constructor(index, previousHash){
+    // blockBody: correspoding block body
+    constructor(index, previousHash,blockBody,difficulty){
         this.index  = index;
         this.timestamp = generateTimeStamp();
         this.previousHash = previousHash;
-        this.nonce = this.generateNonce();
-        this.currentHash = this.calculateHash();
+        this.nonce = 0;
+        this.miningTime = PoWAlgorithm(blockBody);
+        this.currentHash = calculateHash(blockBody);
+        this.merkleRoot = generateMerkleRoot(blockBody);
+        this.difficulty = difficulty;
+
     }
 
     generateTimeStamp(){
-        const date = new Date();
-        const day = date.getDate();
-        const month = date.getMonth(); //
-        const year = date.getFullYear();
-        const timeStamp = day + "-" + (month + 1) + "-" + year;  //dd-mm-yyyy
+        var date = new Date();
+        var hour = date.getHours();
+        hour = hour <10 ? '0' + hour  : hour;
+        var minute = date.getMinutes();
+        minute = minute <10 ? '0' + minute  : minute;
+        var second = date.getSeconds();
+        second = second <10 ? '0' + second  : second;
+        var day = date.getDate();
+        day = day <10 ? '0' + day  : day;
+        var month = date.getMonth(); 
+        month = month <10 ? '0' + month  : month;
+        var year = date.getFullYear();
+        var timeStamp = year  + "-" + (month + 1) + "-" + day + hour + ":" + minute + ":" + second;  //yyyy-mm-dd 00:00:00 
         return timeStamp;
     }
 
-    calculateHash(){
-        return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce).toString;
+    calculateHash(blockBody){
+        return SHA256(this.index + this.previousHash + this.timestamp + JSON.stringify(blockBody) + this.nonce + this.difficulty).toString;
     }
 
-
-    generateNonce(){
-        max = 10000000;
-        return Math.floor(Math.random()*(max+1));
-    }
-
-}
-
-// 2
-class toolForDifficulty{
-    getDifficulty(aBlockchain){
-        const latestBlock = aBlockchain[blockchain.length - 1];
-        if (latestBlock.index % DIFFICULTY_ADJUSTMENT_INTERVAL === 0 && latestBlock.index !== 0) {
-            return getAdjustedDifficulty(latestBlock, aBlockchain);
-        } else {
-            return latestBlock.difficulty;
+    PoWAlgorithm(blockBody){
+        var mid = 0;
+        const MAX = 2**32;
+        var beginTime = +new Date();
+        while (mid < MAX){
+            this.nonce = mid;
+            if (hashMatchDifficulty(this.calculateHash(blockBody),this.difficulty) == true){
+                break;
+            }
+            mid++;
         }
-    };
+        var endTime = +new Date();
+        return (endTime - beginTime);
+    }
 
-    getAdjustedDifficulty = (latestBlock, aBlockchain) => {
-        const prevAdjustmentBlock = aBlockchain[blockchain.length - DIFFICULTY_ADJUSTMENT_INTERVAL];
-        const timeExpected = BLOCK_GENERATION_INTERVAL * DIFFICULTY_ADJUSTMENT_INTERVAL;
-        const timeTaken = latestBlock.timestamp - prevAdjustmentBlock.timestamp;
-        if (timeTaken < timeExpected / 2) {
-            return prevAdjustmentBlock.difficulty + 1;
-        } else if (timeTaken > timeExpected * 2) {
-            return prevAdjustmentBlock.difficulty - 1;
-        } else {
-            return prevAdjustmentBlock.difficulty;
+    hashMatchDifficulty(hash,difficulty){
+        HashInBinary = parseInt(hash,2);
+        binaryHash = String(HashInBinary);
+        if (this.calculateDifficulty(binaryHash) == difficulty){
+            return true;
         }
-    };
-}
-class cIn{
-    constructor(sender){
-        this.sender = sender;
-    }
-}
-
-class cOut{
-    constructor(receiver, amount){
-        this.receiver = receiver;
-    }
-}
-
-class Transaction{
-    constructor(cIn,cOut,amount){
-        this.cIn = In;
-        this.cOut = Out;
-        this.amount = amount;
-        this.hash = this.calculateHash();
+        return false;
     }
 
-    calculateHash(){
-        return SHA256(this.in + this.out ).toString;
+    calculateDifficulty(binaryHash){
+        const n = binaryHash.length;
+        var count = 0;
+        for (var i = 0;i<=n;i++){
+            if (binaryHash[i] != "0"){
+                break;
+            }
+            count++;
+        }
+        return count;
     }
+
+
+
+    generateMerkleRoot(blockBody){
+        if ((this.data.length) % 2 == 0){
+            return sha256(sha256(sha256(sha256(H1+H2))+sha256(sha256(H3+H4))));
+        }
+        else{
+            return sha256(sha256(sha256(sha256(H1+H2))+sha256(sha256(H3+H3))));
+        }
+    }
+
 }
 
-class CoinBaseTransaction{
-    constructor(cOut,amount){
-        this.cOut = cOut;
-        this.amount = amount;
-        this.hash = this.calculateHash();
-    }
-}
-
-class blockData{
+class BlockBody{
 
     //coinBaseTransaction: CoinBaseTransaction, transactions: [] Transaction
     constructor(coinBaseTransaction){
@@ -117,69 +118,163 @@ class Block{
         this.difficulty = toolForDifficulty.getAdjustedDifficulty(data);
     }
 
-    generateMerkleRoot(){
-        //还会改一下
-        if ((this.data.length) % 2 == 0){
-            return sha256(sha256(sha256(sha256(H1+H2))+sha256(sha256(H3+H4))));
-        }
-        else{
-            return sha256(sha256(sha256(sha256(H1+H2))+sha256(sha256(H3+H3))));
-        }
+
+}
+
+// merkle Tree
+
+class Node{
+    constructor(leftNode,rightNode,value,hash){
+        this.leftNode = leftNode;
+        this.rightNode = rightNode;
+        this.value = value;
+        this.hash = calculateHash(value);
     }
 
+    calculateHash(value){
+        return SHA256(value);
+    }
 }
 
 
 
 
-class BlockChain{
-    constructor(){
-        this.chain = [this.generateGenesisBlock()];
-        this.latestIndex = 0;
+// transaction
+
+class cIn{
+    constructor(sender){
+        this.sender = sender;
+    }
+}
+
+class cOut{
+    constructor(receiver, amount){
+        this.receiver = receiver;
+        this.amount = amount;
+    }
+}
+
+class Transaction{
+    constructor(cIn,cOut){
+        this.cIn = In;
+        this.cOut = Out;
+        this.hash = this.calculateHash();
     }
 
+    calculateHash(){
+        return SHA256(this.in + this.out ).toString;
+    }
+}
+
+class CoinBaseTransaction{
+    constructor(cOut){
+        this.cOut = cOut;
+        this.hash = this.calculateHash();
+    }
+}
+
+
+
+
+// blockchain
+
+class BlockChain{
+    constructor(){
+        this.timeOfMining = [];
+        this.chain = [generateGenesisBlock()];
+        this.index = 0;
+        this.newestDifficulty = 0;
+        this.timeStamp = generateTimeStamp();
+    }
+
+    generateTimeStamp(){
+        var date = new Date();
+        var hour = date.getHours();
+        hour = hour <10 ? '0' + hour  : hour;
+        var minute = date.getMinutes();
+        minute = minute <10 ? '0' + minute  : minute;
+        var second = date.getSeconds();
+        second = second <10 ? '0' + second  : second;
+        var day = date.getDate();
+        day = day <10 ? '0' + day  : day;
+        var month = date.getMonth(); 
+        month = month <10 ? '0' + month  : month;
+        var year = date.getFullYear();
+        var timeStamp = year  + "-" + (month + 1) + "-" + day + hour + ":" + minute + ":" + second;  //yyyy-mm-dd 00:00:00 
+        return timeStamp;
+    }
+
+
     generateGenesisBlock(){
-        let genesisBlockHeader= new BlockHeader(1, "0000000000000000000000000000000000000000000000000000000000000000")
 
         // using my Ethereum address  0x301e68Ce99864EaA9AF171aCAe82a085806D7BCF
         // Attention: 前缀不加0x
         // 给我10个coin先
         let genesisCoinBaseTransaction= new CoinBaseTransaction("301e68Ce99864EaA9AF171aCAe82a085806D7BCF", 10);
 
-        let genesisTransactions= new Transaction(Null, Null, Null);
+        let genesisData= new BlockBody(genesisCoinBaseTransaction);
 
-        let genesisData= new blockData(genesisCoinBaseTransaction,genesisTransactions);
+        let genesisBlockHeader= new BlockHeader(index++, "0000000000000000000000000000000000000000000000000000000000000000",genesisData,0);
 
-        let genesisBlock = new Block(generateGenesisBlock, genesisData);
-        return Block;
+        this.timeOfMining.push(genesisBlockHeader.miningTime);
+
+        let genesisBlock = new Block(genesisBlockHeader, genesisData);
+        
+
+        return genesisBlock;
+    }
+
+    generateDynamicDifficulty(){
+        n = this.timeOfMining.length;
+        const EXPECTED_TIME = 3600;
+        var average = 0;
+        if (n<=10){
+            average = sum(this.timeOfMining)/n;
+        }
+        else{
+            var list = this.timeOfMining.slice(n-11,n-1);
+            average = sum(list)/10;
+        }
+        if (average > EXPECTED_TIME){
+            this.newestDifficulty = this.newestDifficulty - 1;
+        }
+        else if (average < EXPECTED_TIME){
+            this.newestDifficulty = this.newestDifficulty + 1;
+        }
+    }
+
+    sum(list){
+        return arr.reduce(function(acr, cur){
+            return acr + cur;
+          });
     }
 
     getLastBlock(){
         return this.chain[this.chain.length - 1];
     }
 
-    generateNewBlock(data){
-        let newBlock = new Block(++index,getLastBlock().currentHash,data);
+    generateNewBlock(CoinBaseTransaction){
+        generateDynamicDifficulty();
+        let newBlockHeader = new BlockHeader(index++,getLastBlock().currentHash,CoinBaseTransaction,this.newestDifficulty);
+        let newBlockBody = new BlockBody(CoinBaseTransaction);
+        let newBlock = new Block(newBlockHeader,newBlockBody);
         this.chain.push(newBlock);
+        this.timeOfMining.push(newBlockHeader(this.timeOfMining));
     }
 
-
-    // Validating the integrity of new blocks (index, previousHash, hash from values & datatypes)
-    ifValidBlock(Block){
+    ifVailedBlock(Block){
         return (Block.previousHash === getLastBlock().previousHash) && (Block.index === this.latestIndex) && (Block.calculateHash === Block.currentHash);
     }
-
-    // Validating the integrity of whole blockchain
-
 }
 
 // TO 瑞杰：可以看看这个就是whole blockchain
 const blockchain = new BlockChain();
 
 
+// Validating the integrity of new blocks (index, previousHash, hash from values & datatypes)
 // TODO
 
-
+// Validating the integrity of whole blockchain
 // TODO
 
 const getBlockchain = () => blockchain;
